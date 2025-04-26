@@ -26,6 +26,8 @@ const CommandComposer = () => {
     commands: ['']
   });
 
+  const [isProjectCreated, setIsProjectCreated] = useState(false);
+
   const generateYaml = () => {
     return `${formData.projectName}:
   command: /${formData.commandName}
@@ -38,7 +40,7 @@ ${formData.commands.map(cmd => `  - ${cmd}`).join('\n')}
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle project creation here
+    setIsProjectCreated(true);
     console.log('Project created:', formData);
   };
 
@@ -58,8 +60,8 @@ ${formData.commands.map(cmd => `  - ${cmd}`).join('\n')}
     }));
   };
 
-  return (
-    <div className="container mx-auto p-6 max-w-3xl">
+  const renderProjectSetup = () => {
+    return (
       <Card className="bg-white shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">New Project</CardTitle>
@@ -140,47 +142,6 @@ ${formData.commands.map(cmd => `  - ${cmd}`).join('\n')}
                   onCheckedChange={(checked) => setFormData(prev => ({ ...prev, advancedEditor: checked }))}
                 />
               </div>
-
-              {formData.advancedEditor ? (
-                <div className="mt-4 border rounded-md overflow-hidden">
-                  <Editor
-                    height="300px"
-                    defaultLanguage="yaml"
-                    value={generateYaml()}
-                    theme="vs-light"
-                    options={{
-                      minimap: { enabled: false },
-                      lineNumbers: "on",
-                      scrollBeyondLastLine: false,
-                      wordWrap: "on",
-                      readOnly: true
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {formData.commands.map((command, index) => (
-                    <div key={index} className="space-y-2">
-                      <Label htmlFor={`command-${index}`}>Command {index + 1}</Label>
-                      <Input
-                        id={`command-${index}`}
-                        value={command}
-                        onChange={(e) => updateCommand(index, e.target.value)}
-                        placeholder="Enter command"
-                      />
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addCommand}
-                    className="w-full"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Command
-                  </Button>
-                </div>
-              )}
             </div>
 
             <Button type="submit" className="w-full">
@@ -189,6 +150,78 @@ ${formData.commands.map(cmd => `  - ${cmd}`).join('\n')}
           </form>
         </CardContent>
       </Card>
+    );
+  };
+
+  const renderProjectEditor = () => {
+    return (
+      <Card className="bg-white shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">
+            {formData.projectName} - /{formData.commandName}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {formData.advancedEditor ? (
+            <div className="mt-4 border rounded-md overflow-hidden">
+              <Editor
+                height="300px"
+                defaultLanguage="yaml"
+                value={generateYaml()}
+                theme="vs-light"
+                options={{
+                  minimap: { enabled: false },
+                  lineNumbers: "on",
+                  scrollBeyondLastLine: false,
+                  wordWrap: "on",
+                }}
+              />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {formData.commands.map((command, index) => (
+                <div key={index} className="space-y-2">
+                  <Label htmlFor={`command-${index}`}>Command {index + 1}</Label>
+                  <Input
+                    id={`command-${index}`}
+                    value={command}
+                    onChange={(e) => updateCommand(index, e.target.value)}
+                    placeholder="Enter command"
+                  />
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addCommand}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Command
+              </Button>
+            </div>
+          )}
+          
+          <div className="mt-6 flex space-x-3">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => setIsProjectCreated(false)}
+            >
+              Back
+            </Button>
+            <Button className="flex-1">
+              Save Project
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  return (
+    <div className="container mx-auto p-6 max-w-3xl">
+      {isProjectCreated ? renderProjectEditor() : renderProjectSetup()}
     </div>
   );
 };
