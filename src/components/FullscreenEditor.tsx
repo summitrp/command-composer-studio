@@ -22,11 +22,11 @@ export const FullscreenEditor = ({
 }: FullscreenEditorProps) => {
   return (
     <Sheet>
-      <SheetContent side="bottom" className="h-[90vh] w-full">
+      <SheetContent side="bottom" className="h-screen w-full">
         <div className="h-full pt-6">
           {isAdvancedEditor ? (
             <Editor
-              height="90%"
+              height="100%"
               defaultLanguage="yaml"
               value={yaml}
               theme="vs-light"
