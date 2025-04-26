@@ -1,21 +1,15 @@
 
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Editor from "@monaco-editor/react";
 import { Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { ActionButtons } from './ActionButtons';
 import { FullscreenEditor } from './FullscreenEditor';
+import { ProjectSetupForm } from './ProjectSetupForm';
+import { generateYaml } from '@/utils/yamlGenerator';
 
 const CommandComposer = () => {
   const [formData, setFormData] = useState({
@@ -29,16 +23,6 @@ const CommandComposer = () => {
   });
 
   const [isProjectCreated, setIsProjectCreated] = useState(false);
-
-  const generateYaml = () => {
-    return `${formData.projectName}:
-  command: /${formData.commandName}
-  type: ${formData.type}
-  runcmd:
-${formData.commands.map(cmd => `  - ${cmd}`).join('\n')}
-  register: ${formData.register}
-  permission-required: ${formData.permissionRequired}`;
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,100 +46,20 @@ ${formData.commands.map(cmd => `  - ${cmd}`).join('\n')}
     }));
   };
 
-  const renderProjectSetup = () => {
-    return (
-      <Card className="bg-white shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">New Project</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="commandName">Command name</Label>
-                <Input
-                  id="commandName"
-                  value={formData.commandName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, commandName: e.target.value }))}
-                  placeholder="Enter command name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="projectName">Project name</Label>
-                <Input
-                  id="projectName"
-                  value={formData.projectName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, projectName: e.target.value }))}
-                  placeholder="Enter project name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="RUN_COMMAND">RUN_COMMAND</SelectItem>
-                    <SelectItem value="RUN_CONSOLE">RUN_CONSOLE</SelectItem>
-                    <SelectItem value="BROADCAST_TEXT">BROADCAST_TEXT</SelectItem>
-                    <SelectItem value="RUN_AS_OPERATOR">RUN_AS_OPERATOR</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="register">Register</Label>
-                  <p className="text-sm text-muted-foreground">Enable registration for this command</p>
-                </div>
-                <Switch
-                  id="register"
-                  checked={formData.register}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, register: checked }))}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="permission">Permission required</Label>
-                  <p className="text-sm text-muted-foreground">Require permissions to use this command</p>
-                </div>
-                <Switch
-                  id="permission"
-                  checked={formData.permissionRequired}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, permissionRequired: checked }))}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="advanced">Advanced Editor</Label>
-                  <p className="text-sm text-muted-foreground">Enable advanced YAML editor</p>
-                </div>
-                <Switch
-                  id="advanced"
-                  checked={formData.advancedEditor}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, advancedEditor: checked }))}
-                />
-              </div>
-            </div>
-
-            <Button type="submit" className="w-full">
-              Create Project
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    );
+  const handleFormDataChange = (updates: Partial<typeof formData>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
   };
 
   const renderProjectEditor = () => {
+    const yaml = generateYaml({
+      projectName: formData.projectName,
+      commandName: formData.commandName,
+      type: formData.type,
+      commands: formData.commands,
+      register: formData.register,
+      permissionRequired: formData.permissionRequired,
+    });
+
     return (
       <Card className="bg-white shadow-lg">
         <CardHeader>
@@ -169,7 +73,7 @@ ${formData.commands.map(cmd => `  - ${cmd}`).join('\n')}
               <Editor
                 height="300px"
                 defaultLanguage="yaml"
-                value={generateYaml()}
+                value={yaml}
                 theme="vs-light"
                 options={{
                   minimap: { enabled: false },
@@ -205,7 +109,7 @@ ${formData.commands.map(cmd => `  - ${cmd}`).join('\n')}
           )}
           
           <ActionButtons 
-            yaml={generateYaml()} 
+            yaml={yaml} 
             projectName={formData.projectName}
             onFullscreen={() => {
               const editorSheet = document.querySelector('[data-state="closed"]');
@@ -217,7 +121,7 @@ ${formData.commands.map(cmd => `  - ${cmd}`).join('\n')}
 
           <FullscreenEditor
             isAdvancedEditor={formData.advancedEditor}
-            yaml={generateYaml()}
+            yaml={yaml}
             commands={formData.commands}
             onCommandAdd={addCommand}
             onCommandUpdate={updateCommand}
@@ -229,7 +133,15 @@ ${formData.commands.map(cmd => `  - ${cmd}`).join('\n')}
 
   return (
     <div className="container mx-auto p-6 max-w-3xl">
-      {isProjectCreated ? renderProjectEditor() : renderProjectSetup()}
+      {isProjectCreated ? (
+        renderProjectEditor()
+      ) : (
+        <ProjectSetupForm
+          formData={formData}
+          onFormSubmit={handleSubmit}
+          onFormDataChange={handleFormDataChange}
+        />
+      )}
     </div>
   );
 };
