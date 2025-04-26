@@ -14,6 +14,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Editor from "@monaco-editor/react";
 import { Plus } from "lucide-react";
+import { ActionButtons } from './ActionButtons';
+import { FullscreenEditor } from './FullscreenEditor';
 
 const CommandComposer = () => {
   const [formData, setFormData] = useState({
@@ -202,18 +204,24 @@ ${formData.commands.map(cmd => `  - ${cmd}`).join('\n')}
             </div>
           )}
           
-          <div className="mt-6 flex space-x-3">
-            <Button 
-              variant="outline" 
-              className="flex-1"
-              onClick={() => setIsProjectCreated(false)}
-            >
-              Back
-            </Button>
-            <Button className="flex-1">
-              Save Project
-            </Button>
-          </div>
+          <ActionButtons 
+            yaml={generateYaml()} 
+            projectName={formData.projectName}
+            onFullscreen={() => {
+              const editorSheet = document.querySelector('[data-state="closed"]');
+              if (editorSheet) {
+                (editorSheet as HTMLButtonElement).click();
+              }
+            }}
+          />
+
+          <FullscreenEditor
+            isAdvancedEditor={formData.advancedEditor}
+            yaml={generateYaml()}
+            commands={formData.commands}
+            onCommandAdd={addCommand}
+            onCommandUpdate={updateCommand}
+          />
         </CardContent>
       </Card>
     );
