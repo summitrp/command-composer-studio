@@ -1,17 +1,7 @@
-
 import { Code, Download, Save, Settings } from "lucide-react";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "./ui/sidebar";
-
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "./ui/sidebar";
 interface ProjectSidebarProps {
   onCopyCode: () => void;
   onDownloadYaml: () => void;
@@ -19,17 +9,15 @@ interface ProjectSidebarProps {
   onToggleSettings: () => void;
   isAdvancedEditor: boolean;
 }
-
 export const ProjectSidebar = ({
   onCopyCode,
   onDownloadYaml,
   onToggleEditor,
   onToggleSettings,
-  isAdvancedEditor,
+  isAdvancedEditor
 }: ProjectSidebarProps) => {
-  return (
-    <Sidebar className="border-none bg-[#221F26]">
-      <SidebarContent>
+  return <Sidebar className="border-none bg-[#221F26]">
+      <SidebarContent className="bg-zinc-900">
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-400">Project</SidebarGroupLabel>
           <SidebarMenu>
@@ -66,6 +54,5 @@ export const ProjectSidebar = ({
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-    </Sidebar>
-  );
+    </Sidebar>;
 };
