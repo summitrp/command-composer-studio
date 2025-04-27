@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Editor from "@monaco-editor/react";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -50,6 +49,19 @@ const CommandComposer = () => {
     setFormData(prev => ({ ...prev, ...updates }));
   };
 
+  const handleDiscard = () => {
+    setIsProjectCreated(false);
+    setFormData({
+      commandName: '',
+      projectName: '',
+      type: 'RUN_COMMAND',
+      register: false,
+      permissionRequired: false,
+      advancedEditor: false,
+      commands: ['']
+    });
+  };
+
   const renderProjectEditor = () => {
     const yaml = generateYaml({
       projectName: formData.projectName,
@@ -62,10 +74,18 @@ const CommandComposer = () => {
 
     return (
       <Card className="bg-white shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-2xl font-bold">
             {formData.projectName} - /{formData.commandName}
           </CardTitle>
+          <Button 
+            variant="destructive" 
+            size="icon" 
+            onClick={handleDiscard}
+            aria-label="Discard project"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </CardHeader>
         <CardContent>
           {formData.advancedEditor ? (
