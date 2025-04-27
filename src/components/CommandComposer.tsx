@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import Editor from "@monaco-editor/react";
@@ -104,52 +105,56 @@ const renderProjectEditor = () => {
             isAdvancedEditor={formData.advancedEditor}
           />
           <ResizablePanelGroup direction="horizontal" className="w-full">
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={40}>
-              <div className="h-full overflow-y-auto p-4">
-                {!formData.advancedEditor && (
-                  <div className="space-y-4">
-                    {formData.commands.map((command, index) => (
-                      <Input
-                        key={index}
-                        value={command}
-                        onChange={(e) => updateCommand(index, e.target.value)}
-                        placeholder="Enter command"
-                        className="bg-[#222222] border-[#333333] text-white placeholder:text-gray-500"
-                      />
-                    ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addCommand}
-                      className="w-full border-[#333333] text-gray-300 hover:bg-[#333333] hover:text-white transition-colors"
-                    >
-                      Add Command
-                    </Button>
+            {!formData.advancedEditor && (
+              <>
+                <ResizablePanel defaultSize={20} minSize={15} maxSize={40}>
+                  <div className="h-full overflow-y-auto p-4">
+                    <div className="space-y-4">
+                      {formData.commands.map((command, index) => (
+                        <Input
+                          key={index}
+                          value={command}
+                          onChange={(e) => updateCommand(index, e.target.value)}
+                          placeholder="Enter command"
+                          className="bg-[#222222] border-[#333333] text-white placeholder:text-gray-500"
+                        />
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addCommand}
+                        className="w-full border-[#333333] text-gray-300 hover:bg-[#333333] hover:text-white transition-colors"
+                      >
+                        Add Command
+                      </Button>
+                    </div>
                   </div>
-                )}
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+              </>
+            )}
+            <ResizablePanel defaultSize={formData.advancedEditor ? 100 : 80}>
+              <div className="h-full">
+                <Editor
+                  height="100vh"
+                  defaultLanguage="yaml"
+                  value={yaml}
+                  theme="vs-dark"
+                  options={{
+                    fontSize: 14,
+                    fontFamily: 'JetBrains Mono, monospace',
+                    minimap: { enabled: true },
+                    lineNumbers: "on",
+                    scrollBeyondLastLine: false,
+                    wordWrap: "on",
+                    padding: { top: 20 },
+                    renderLineHighlight: 'all',
+                    smoothScrolling: true,
+                    cursorBlinking: 'smooth',
+                    cursorSmoothCaretAnimation: 'on',
+                  }}
+                />
               </div>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={80}>
-              <Editor
-                height="100%"
-                defaultLanguage="yaml"
-                value={yaml}
-                theme="vs-dark"
-                options={{
-                  fontSize: 14,
-                  fontFamily: 'JetBrains Mono, monospace',
-                  minimap: { enabled: true },
-                  lineNumbers: "on",
-                  scrollBeyondLastLine: false,
-                  wordWrap: "on",
-                  padding: { top: 20 },
-                  renderLineHighlight: 'all',
-                  smoothScrolling: true,
-                  cursorBlinking: 'smooth',
-                  cursorSmoothCaretAnimation: 'on',
-                }}
-              />
             </ResizablePanel>
           </ResizablePanelGroup>
         </div>
