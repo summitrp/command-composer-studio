@@ -32,7 +32,7 @@ export const ActionButtons = ({
         <Copy className="mr-2 h-4 w-4" />
         Copy Code
       </Button>
-      <Button variant="outline" onClick={handleSaveYaml}>
+      <Button variant="outline" onClick={handleSaveYaml} className="text-slate-800">
         <Download className="mr-2 h-4 w-4" />
         Save as YAML
       </Button>
