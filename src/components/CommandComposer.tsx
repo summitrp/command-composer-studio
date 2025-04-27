@@ -62,57 +62,70 @@ const CommandComposer = () => {
     });
   };
 
-  const renderProjectEditor = () => {
-    const yaml = generateYaml({
-      projectName: formData.projectName,
-      commandName: formData.commandName,
-      type: formData.type,
-      commands: formData.commands,
-      register: formData.register,
-      permissionRequired: formData.permissionRequired,
-    });
+const renderProjectEditor = () => {
+  const yaml = generateYaml({
+    projectName: formData.projectName,
+    commandName: formData.commandName,
+    type: formData.type,
+    commands: formData.commands,
+    register: formData.register,
+    permissionRequired: formData.permissionRequired,
+  });
 
-    return (
-      <Card className="bg-white shadow-lg">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-2xl font-bold">
-            {formData.projectName} - /{formData.commandName}
-          </CardTitle>
+  return (
+    <div className="fixed inset-0 bg-[#1A1F2C] text-white">
+      <div className="flex flex-col h-full">
+        <header className="flex items-center justify-between px-4 py-2 bg-[#222222] border-b border-[#333333]">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-400">Project:</span>
+            <span className="text-sm text-white">{formData.projectName}</span>
+            <span className="text-sm text-gray-400">Command:</span>
+            <span className="text-sm text-white">/{formData.commandName}</span>
+          </div>
           <Button 
-            variant="destructive" 
+            variant="ghost" 
             size="icon" 
             onClick={handleDiscard}
+            className="hover:bg-red-500/20 text-red-400 hover:text-red-300"
             aria-label="Discard project"
           >
             <X className="h-4 w-4" />
           </Button>
-        </CardHeader>
-        <CardContent>
+        </header>
+        
+        <main className="flex-1 overflow-hidden">
           {formData.advancedEditor ? (
-            <div className="mt-4 border rounded-md overflow-hidden">
-              <Editor
-                height="300px"
-                defaultLanguage="yaml"
-                value={yaml}
-                theme="vs-light"
-                options={{
-                  minimap: { enabled: false },
-                  lineNumbers: "on",
-                  scrollBeyondLastLine: false,
-                  wordWrap: "on",
-                }}
-              />
-            </div>
+            <Editor
+              height="100%"
+              defaultLanguage="yaml"
+              value={yaml}
+              theme="vs-dark"
+              options={{
+                fontSize: 14,
+                fontFamily: 'JetBrains Mono, monospace',
+                minimap: { enabled: true },
+                lineNumbers: "on",
+                scrollBeyondLastLine: false,
+                wordWrap: "on",
+                padding: { top: 20 },
+                renderLineHighlight: 'all',
+                smoothScrolling: true,
+                cursorBlinking: 'smooth',
+                cursorSmoothCaretAnimation: 'on',
+              }}
+              className="h-full"
+            />
           ) : (
-            <div className="space-y-4">
+            <div className="p-6 space-y-4 bg-[#1A1F2C] h-full overflow-y-auto">
               {formData.commands.map((command, index) => (
                 <div key={index} className="space-y-2">
-                  <Label htmlFor={`command-${index}`}>Command {index + 1}</Label>
+                  <Label htmlFor={`command-${index}`} className="text-gray-300">Command {index + 1}</Label>
                   <Input
                     id={`command-${index}`}
                     value={command}
                     onChange={(e) => updateCommand(index, e.target.value)}
                     placeholder="Enter command"
+                    className="bg-[#222222] border-[#333333] text-white placeholder:text-gray-500"
                   />
                 </div>
               ))}
@@ -120,16 +133,18 @@ const CommandComposer = () => {
                 type="button"
                 variant="outline"
                 onClick={addCommand}
-                className="w-full"
+                className="w-full border-[#333333] text-gray-300 hover:bg-[#333333] hover:text-white transition-colors"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Command
               </Button>
             </div>
           )}
-          
+        </main>
+        
+        <footer className="px-4 py-2 bg-[#222222] border-t border-[#333333]">
           <ActionButtons 
-            yaml={yaml} 
+            yaml={yaml}
             projectName={formData.projectName}
             onFullscreen={() => {
               const editorSheet = document.querySelector('[data-state="closed"]');
@@ -138,32 +153,35 @@ const CommandComposer = () => {
               }
             }}
           />
+        </footer>
+      </div>
+      
+      <FullscreenEditor
+        isAdvancedEditor={formData.advancedEditor}
+        yaml={yaml}
+        commands={formData.commands}
+        onCommandAdd={addCommand}
+        onCommandUpdate={updateCommand}
+      />
+    </div>
+  );
+};
 
-          <FullscreenEditor
-            isAdvancedEditor={formData.advancedEditor}
-            yaml={yaml}
-            commands={formData.commands}
-            onCommandAdd={addCommand}
-            onCommandUpdate={updateCommand}
-          />
-        </CardContent>
-      </Card>
-    );
-  };
-
-  return (
-    <div className="container mx-auto p-6 max-w-3xl">
-      {isProjectCreated ? (
-        renderProjectEditor()
-      ) : (
+return (
+  <div className="h-screen">
+    {isProjectCreated ? (
+      renderProjectEditor()
+    ) : (
+      <div className="container mx-auto p-6 max-w-3xl">
         <ProjectSetupForm
           formData={formData}
           onFormSubmit={handleSubmit}
           onFormDataChange={handleFormDataChange}
         />
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
 };
 
 export default CommandComposer;
