@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import Editor from "@monaco-editor/react";
-import { Plus, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ActionButtons } from './ActionButtons';
 import { FullscreenEditor } from './FullscreenEditor';
 import { ProjectSetupForm } from './ProjectSetupForm';
 import { generateYaml } from '@/utils/yamlGenerator';
+import { ProjectSidebar } from './ProjectSidebar';
+import { SidebarProvider } from './ui/sidebar';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from './ui/resizable';
 
 const CommandComposer = () => {
   const [formData, setFormData] = useState({
@@ -62,7 +64,24 @@ const CommandComposer = () => {
     });
   };
 
-const renderProjectEditor = () => {
+  const handleCopyCode = async () => {
+    await navigator.clipboard.writeText(yaml);
+  };
+
+  const handleSaveYaml = () => {
+    const blob = new Blob([yaml], {
+      type: 'text/yaml'
+    });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${formData.projectName}.yaml`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
   const yaml = generateYaml({
     projectName: formData.projectName,
     commandName: formData.commandName,
@@ -72,116 +91,88 @@ const renderProjectEditor = () => {
     permissionRequired: formData.permissionRequired,
   });
 
+const renderProjectEditor = () => {
   return (
     <div className="fixed inset-0 bg-[#1A1F2C] text-white">
-      <div className="flex flex-col h-full">
-        <header className="flex items-center justify-between px-4 py-2 bg-[#222222] border-b border-[#333333]">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-400">Project:</span>
-            <span className="text-sm text-white">{formData.projectName}</span>
-            <span className="text-sm text-gray-400">Command:</span>
-            <span className="text-sm text-white">/{formData.commandName}</span>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={handleDiscard}
-            className="hover:bg-red-500/20 text-red-400 hover:text-red-300"
-            aria-label="Discard project"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </header>
-        
-        <main className="flex-1 overflow-hidden">
-          {formData.advancedEditor ? (
-            <Editor
-              height="100%"
-              defaultLanguage="yaml"
-              value={yaml}
-              theme="vs-dark"
-              options={{
-                fontSize: 14,
-                fontFamily: 'JetBrains Mono, monospace',
-                minimap: { enabled: true },
-                lineNumbers: "on",
-                scrollBeyondLastLine: false,
-                wordWrap: "on",
-                padding: { top: 20 },
-                renderLineHighlight: 'all',
-                smoothScrolling: true,
-                cursorBlinking: 'smooth',
-                cursorSmoothCaretAnimation: 'on',
-              }}
-              className="h-full"
-            />
-          ) : (
-            <div className="p-6 space-y-4 bg-[#1A1F2C] h-full overflow-y-auto">
-              {formData.commands.map((command, index) => (
-                <div key={index} className="space-y-2">
-                  <Label htmlFor={`command-${index}`} className="text-gray-300">Command {index + 1}</Label>
-                  <Input
-                    id={`command-${index}`}
-                    value={command}
-                    onChange={(e) => updateCommand(index, e.target.value)}
-                    placeholder="Enter command"
-                    className="bg-[#222222] border-[#333333] text-white placeholder:text-gray-500"
-                  />
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={addCommand}
-                className="w-full border-[#333333] text-gray-300 hover:bg-[#333333] hover:text-white transition-colors"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Command
-              </Button>
-            </div>
-          )}
-        </main>
-        
-        <footer className="px-4 py-2 bg-[#222222] border-t border-[#333333]">
-          <ActionButtons 
-            yaml={yaml}
-            projectName={formData.projectName}
-            onFullscreen={() => {
-              const editorSheet = document.querySelector('[data-state="closed"]');
-              if (editorSheet) {
-                (editorSheet as HTMLButtonElement).click();
-              }
-            }}
+      <SidebarProvider defaultOpen={true}>
+        <div className="flex h-full w-full">
+          <ProjectSidebar 
+            onCopyCode={handleCopyCode}
+            onDownloadYaml={handleSaveYaml}
+            onToggleEditor={() => handleFormDataChange({ advancedEditor: !formData.advancedEditor })}
+            onToggleSettings={() => setIsProjectCreated(false)}
+            isAdvancedEditor={formData.advancedEditor}
           />
-        </footer>
-      </div>
-      
-      <FullscreenEditor
-        isAdvancedEditor={formData.advancedEditor}
-        yaml={yaml}
-        commands={formData.commands}
-        onCommandAdd={addCommand}
-        onCommandUpdate={updateCommand}
-      />
+          <ResizablePanelGroup direction="horizontal" className="w-full">
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={40}>
+              <div className="h-full overflow-y-auto p-4">
+                {!formData.advancedEditor && (
+                  <div className="space-y-4">
+                    {formData.commands.map((command, index) => (
+                      <Input
+                        key={index}
+                        value={command}
+                        onChange={(e) => updateCommand(index, e.target.value)}
+                        placeholder="Enter command"
+                        className="bg-[#222222] border-[#333333] text-white placeholder:text-gray-500"
+                      />
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addCommand}
+                      className="w-full border-[#333333] text-gray-300 hover:bg-[#333333] hover:text-white transition-colors"
+                    >
+                      Add Command
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={80}>
+              <Editor
+                height="100%"
+                defaultLanguage="yaml"
+                value={yaml}
+                theme="vs-dark"
+                options={{
+                  fontSize: 14,
+                  fontFamily: 'JetBrains Mono, monospace',
+                  minimap: { enabled: true },
+                  lineNumbers: "on",
+                  scrollBeyondLastLine: false,
+                  wordWrap: "on",
+                  padding: { top: 20 },
+                  renderLineHighlight: 'all',
+                  smoothScrolling: true,
+                  cursorBlinking: 'smooth',
+                  cursorSmoothCaretAnimation: 'on',
+                }}
+              />
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
+      </SidebarProvider>
     </div>
   );
 };
 
-return (
-  <div className="h-screen">
-    {isProjectCreated ? (
-      renderProjectEditor()
-    ) : (
-      <div className="container mx-auto p-6 max-w-3xl">
-        <ProjectSetupForm
-          formData={formData}
-          onFormSubmit={handleSubmit}
-          onFormDataChange={handleFormDataChange}
-        />
-      </div>
-    )}
-  </div>
-);
+  return (
+    <div className="h-screen">
+      {isProjectCreated ? (
+        renderProjectEditor()
+      ) : (
+        <div className="container mx-auto p-6 max-w-3xl">
+          <ProjectSetupForm
+            formData={formData}
+            onFormSubmit={handleSubmit}
+            onFormDataChange={handleFormDataChange}
+          />
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default CommandComposer;
