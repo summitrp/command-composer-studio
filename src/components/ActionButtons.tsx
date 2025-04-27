@@ -36,7 +36,7 @@ export const ActionButtons = ({
         <Download className="mr-2 h-4 w-4" />
         Save as YAML
       </Button>
-      <Button variant="outline" onClick={onFullscreen}>
+      <Button variant="outline" onClick={onFullscreen} className="text-slate-900">
         <Maximize2 className="mr-2 h-4 w-4" />
         Fullscreen
       </Button>
